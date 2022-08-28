@@ -34,7 +34,7 @@ int Grid_Sample::load_param(const ParamDict& pd)
         return -1;
     }
 
-    if (padding_mode< 1 || padding_mode> 3)
+    if (padding_mode < 1 || padding_mode > 3)
     {
         NCNN_LOGE("unsupported padding mode %d", padding_mode);
         return -1;
@@ -58,10 +58,10 @@ __attribute__((optimize("no-tree-vectorize")))
 //     pixel coord both directions, i.e, (-0.5, -0.5) coord acutal image space.
 //     Normalized location (1, 1) points to the bottom-tight pixel plus half
 //     pixel coord both directions, i.e. (H - 0.5, W - 0.5) coord acutal image space.
-static float grid_sample_unormalize(int w, float coordx, int align_corner)
+static float
+grid_sample_unormalize(int w, float coordx, int align_corner)
 {
-    return align_corner ? (coordx + 1) / 2.f * (w - 1) : \
-                          ((coordx + 1) * w - 1) / 2.f;
+    return align_corner ? (coordx + 1) / 2.f * (w - 1) : ((coordx + 1) * w - 1) / 2.f;
 }
 
 static int border_coord(float coord, int border)
@@ -86,8 +86,8 @@ static int reflect_coord(int coord, int low, int high)
     return flips % 2 ? (span - extra + min) : (extra + min);
 }
 
-// static void linear_coeffs(int w, int outw, 
-//                         const float *coordxs, int* xofs, float* alpha, 
+// static void linear_coeffs(int w, int outw,
+//                         const float *coordxs, int* xofs, float* alpha,
 //                         int align_corner, int padding_mode)
 // {
 //     for(int dx = 0; dx < outw; dx++)
@@ -97,7 +97,7 @@ static int reflect_coord(int coord, int low, int high)
 //         int sx = static_cast<int>(floor(fx));
 //         fx -= sx;
 
-//         // To Do 
+//         // To Do
 //         // 处理一下padding_mode的问题, 突然觉得这里处理这个不合适，
 //         // 最好应该在最终的时候处理，因为最终的时候填零还是填边缘值才能确定
 //         // 又想了一下，还是在这里确定吧，不然的话还是比较麻烦
@@ -145,28 +145,25 @@ static int reflect_coord(int coord, int low, int high)
 
 static float get_coord(float x, int w, int padding_mode, int align_corner)
 {
-            // compute the origin coordinates and the coeffs
-            float sx = grid_sample_unormalize(w, x, align_corner);
+    // compute the origin coordinates and the coeffs
+    float sx = grid_sample_unormalize(w, x, align_corner);
 
-            // correct the coordinates and the coeffs according to the padding_mode
-            if(padding_mode == 2) // border
-            {
-                sx = border_coord(sx, w - 1);
-            }
-            else if(padding_mode == 3) // reflection
-            {
-                if(align_corner)
-                {
-                    sx = reflect_coord(sx, 0, 2 * (w - 1));
-                }
-                else
-                {
-                    sx = reflect_coord(sx, -1, 2 * w - 1);
-                }
-            }
-
-
-
+    // correct the coordinates and the coeffs according to the padding_mode
+    if (padding_mode == 2) // border
+    {
+        sx = border_coord(sx, w - 1);
+    }
+    else if (padding_mode == 3) // reflection
+    {
+        if (align_corner)
+        {
+            sx = reflect_coord(sx, 0, 2 * (w - 1));
+        }
+        else
+        {
+            sx = reflect_coord(sx, -1, 2 * w - 1);
+        }
+    }
 }
 
 static bool in_bounds(int x, int y, int w, int h)
@@ -182,15 +179,14 @@ static void GSample_bilinear(const Mat& src, Mat& dst, const Mat& grid,
     int w = src.w;
     int h = src.h;
 
-    const float * srcptr = src;
-    const float * dstptr = dst;
+    const float* srcptr = src;
+    const float* dstptr = dst;
 
     for (int dy = 0; dy < outh; dy++)
     {
-        const float * gridrowptr = grid.row(dy);
+        const float* gridrowptr = grid.row(dy);
         for (int dx = 0; dx < outw; dx++)
         {
-
             // get the coordinate
             float x = gridrowptr[dx * 2];
             float y = gridrowptr[dx * 2 + 1];
@@ -208,21 +204,21 @@ static void GSample_bilinear(const Mat& src, Mat& dst, const Mat& grid,
             // compute the bilinear answer
             float dst0 = 0.f;
 
-            if(in_bounds(x0, y0, w, h))
+            if (in_bounds(x0, y0, w, h))
             {
-                dst0 += src[y0*w + x0] * a0 * b0;
+                dst0 += src[y0 * w + x0] * a0 * b0;
             }
-            if(in_bounds(x1, y0, w, h))
+            if (in_bounds(x1, y0, w, h))
             {
-                dst0 += src[y0*w + x1] * a1 * b0;
+                dst0 += src[y0 * w + x1] * a1 * b0;
             }
-            if(in_bounds(x0, y1, w, h))
+            if (in_bounds(x0, y1, w, h))
             {
-                dst0 += src[y1*w + x0] * a0 * b1;
+                dst0 += src[y1 * w + x0] * a0 * b1;
             }
-            if(in_bounds(x1, y1, w, h))
+            if (in_bounds(x1, y1, w, h))
             {
-                dst0 += src[y1*w + x1] * a1 * b1;
+                dst0 += src[y1 * w + x1] * a1 * b1;
             }
 
             dst[dy * outw + dx] = dst0;
@@ -246,7 +242,7 @@ int Grid_Sample::forward(const std::vector<Mat>& bottom_blobs, std::vector<Mat>&
     int outw = grid.w;
     int outh = grid.h;
 
-    if(dims == 3)
+    if (dims == 3)
     {
         top_blob.create(outw, outh, channels, elemsize, opt.blob_allocator);
         if (top_blob.empty())
@@ -262,15 +258,12 @@ int Grid_Sample::forward(const std::vector<Mat>& bottom_blobs, std::vector<Mat>&
                 GSample_bilinear(src, dst, grid, align_corner, padding_mode);
             }
         }
-        else if(resize_type == 2) //nearest
+        else if (resize_type == 2) //nearest
         {
-
         }
     }
 
     return 0;
 }
 
-
 } // namespace ncnn
-

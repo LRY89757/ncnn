@@ -17,7 +17,4 @@
 
 static int test_grid_sample(const ncnn::Mat& a, int resize_type, int padding_mode, int align_corner)
 {
-
-
-
 }

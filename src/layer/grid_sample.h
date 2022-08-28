@@ -17,7 +17,7 @@
 
 #include "layer.h"
 
-namespace ncnn{
+namespace ncnn {
 
 class Grid_Sample : public Layer
 {
