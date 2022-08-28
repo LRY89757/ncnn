@@ -226,6 +226,47 @@ static void GSample_bilinear(const Mat& src, Mat& dst, const Mat& grid,
     }
 }
 
+static void GSample_nearest(const Mat& src, Mat& dst, const Mat& grid,
+                             int align_corner, int padding_mode)
+{
+    int outw = dst.w;
+    int outh = dst.h;
+    int w = src.w;
+    int h = src.h;
+
+    const float* srcptr = src;
+    const float* dstptr = dst;
+
+    for (int dy = 0; dy < outh; dy++)
+    {
+        const float* gridrowptr = grid.row(dy);
+        for (int dx = 0; dx < outw; dx++)
+        {
+            // get the coordinate
+            float x = gridrowptr[dx * 2];
+            float y = gridrowptr[dx * 2 + 1];
+            int x0 = get_coord(x, w, padding_mode, align_corner);
+            int y0 = get_coord(y, h, padding_mode, align_corner);
+            int x1 = x0 + 1;
+            int y1 = y1 + 1;
+
+            // compute the coeffs of every coord
+            int a1 = x0 - static_cast<int>(std::floor(x0));
+            int b1 = y0 - static_cast<int>(std::floor(y0));
+            int a0 = 1 - a1;
+            int b0 = 1 - b1;
+
+            // get the nearest point
+            int xn = a1 > 0.5 ? x1 : x0;
+            int yn = b1 > 0.5 ? y1 : y0;
+
+            dst[dy * outw + dx] = in_bounds(xn, yn, w, h) ? src[yn * w + xn] : 0.f;
+        }
+    }
+
+
+}
+
 int Grid_Sample::forward(const std::vector<Mat>& bottom_blobs, std::vector<Mat>& top_blobs, const Option& opt) const
 {
     const Mat& bottom_blob = bottom_blobs[0];
@@ -260,6 +301,19 @@ int Grid_Sample::forward(const std::vector<Mat>& bottom_blobs, std::vector<Mat>&
         }
         else if (resize_type == 2) //nearest
         {
+            #pragma omp parallel for num_threads(opt.num_threads)
+            for(int q = 0; q < channels; q++)
+            {
+                const Mat src = bottom_blob.channel(q);
+                Mat dst = top_blob.channel(q);
+
+                GSample_nearest(src, dst, grid, align_corner, padding_mode);
+            }
+        }
+        else if(resize_type == 3) // bicubic
+        {
+            
+
         }
     }
 
