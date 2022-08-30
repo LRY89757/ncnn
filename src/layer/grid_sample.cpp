@@ -86,75 +86,18 @@ static int reflect_coord(int coord, int low, int high)
     return flips % 2 ? (span - extra + min) : (extra + min);
 }
 
-// static void linear_coeffs(int w, int outw,
-//                         const float *coordxs, int* xofs, float* alpha,
-//                         int align_corner, int padding_mode)
-// {
-//     for(int dx = 0; dx < outw; dx++)
-//     {
-//         float fx = grid_sample_unormalize(w, coordxs[2 * dx], align_corner);
-
-//         int sx = static_cast<int>(floor(fx));
-//         fx -= sx;
-
-//         // To Do
-//         // 处理一下padding_mode的问题, 突然觉得这里处理这个不合适，
-//         // 最好应该在最终的时候处理，因为最终的时候填零还是填边缘值才能确定
-//         // 又想了一下，还是在这里确定吧，不然的话还是比较麻烦
-//         // xs = func
-//         // fx = func
-//         // int padding_pivot = align_corner ? 0 : -1;
-//         if(padding_mode == 1) // zeros
-//         {
-//             if(sx < padding_pivot || sx >= w - 1)
-//             {
-//                 alpha[dx * 2] = 0;
-//                 alpha[dx * 2 + 1] = 0;
-//             }
-//             else
-//             {
-//                 alpha[dx * 2] = 1.f - fx;
-//                 alpha[dx * 2 + 1] = fx;
-//             }
-//         }
-//         else if(padding_mode == 2) // border
-//         {
-//             if (sx < 0)
-//             {
-//                 sx = 0;
-//                 fx = 0.f;
-//             }
-//             if (sx >= w - 1)
-//             {
-//                 sx = w - 2;
-//                 fx = 1.f;
-//             }
-
-//             alpha[dx * 2] = 1.f - fx;
-//             alpha[dx * 2 + 1] = fx;
-//         }
-//         else // reflection
-//         {
-//             // TO DO
-//             // 这个要不断反射，写个递归小代码就行应该
-//         }
-
-//         xofs[dx] = sx;
-//     }
-// }
-
-static float get_coord(float x, int w, int padding_mode, int align_corner)
+static float compute_coord(float sx, int w,
+                           int padding_mode, int align_corner)
 {
-    // compute the origin coordinates and the coeffs
-    float sx = grid_sample_unormalize(w, x, align_corner);
-
-    // correct the coordinates and the coeffs according to the padding_mode
+    // correct the coordinates according to the padding_mode
     if (padding_mode == 2) // border
     {
+        // clip coordinates to image borders
         sx = border_coord(sx, w - 1);
     }
     else if (padding_mode == 3) // reflection
     {
+        // reflect coordinates by image borders
         if (align_corner)
         {
             sx = reflect_coord(sx, 0, 2 * (w - 1));
@@ -163,7 +106,21 @@ static float get_coord(float x, int w, int padding_mode, int align_corner)
         {
             sx = reflect_coord(sx, -1, 2 * w - 1);
         }
+        // clip coordinates to image borders
+        sx = border_coord(sx, w);
     }
+    return sx;
+}
+
+static float get_coord(float x, int w, int padding_mode, int align_corner)
+{
+    // compute the origin coordinates
+    float sx = grid_sample_unormalize(w, x, align_corner);
+
+    // correct the coordinates according to the padding_mode
+    float coord = compute_coord(sx, w, padding_mode, align_corner);
+
+    return coord;
 }
 
 static bool in_bounds(int x, int y, int w, int h)
@@ -171,100 +128,50 @@ static bool in_bounds(int x, int y, int w, int h)
     return x >= 0 && y >= 0 && x < w && y < h;
 }
 
-static void GSample_bilinear(const Mat& src, Mat& dst, const Mat& grid,
-                             int align_corner, int padding_mode)
+static float get_value_bounded(const float* data, float x, float y, int w, int h,
+                               int padding_mode, int align_corner)
 {
-    int outw = dst.w;
-    int outh = dst.h;
-    int w = src.w;
-    int h = src.h;
+    x = compute_coord(x, w, padding_mode, align_corner);
+    y = compute_coord(y, w, padding_mode, align_corner);
 
-    const float* srcptr = src;
-    const float* dstptr = dst;
+    int ix = static_cast<int>(x);
+    int iy = static_cast<int>(y);
 
-    for (int dy = 0; dy < outh; dy++)
-    {
-        const float* gridrowptr = grid.row(dy);
-        for (int dx = 0; dx < outw; dx++)
-        {
-            // get the coordinate
-            float x = gridrowptr[dx * 2];
-            float y = gridrowptr[dx * 2 + 1];
-            int x0 = get_coord(x, w, padding_mode, align_corner);
-            int y0 = get_coord(y, h, padding_mode, align_corner);
-            int x1 = x0 + 1;
-            int y1 = y1 + 1;
-
-            // compute the coeffs of every coord
-            int a1 = x0 - static_cast<int>(std::floor(x0));
-            int b1 = y0 - static_cast<int>(std::floor(y0));
-            int a0 = 1 - a1;
-            int b0 = 1 - b1;
-
-            // compute the bilinear answer
-            float dst0 = 0.f;
-
-            if (in_bounds(x0, y0, w, h))
-            {
-                dst0 += src[y0 * w + x0] * a0 * b0;
-            }
-            if (in_bounds(x1, y0, w, h))
-            {
-                dst0 += src[y0 * w + x1] * a1 * b0;
-            }
-            if (in_bounds(x0, y1, w, h))
-            {
-                dst0 += src[y1 * w + x0] * a0 * b1;
-            }
-            if (in_bounds(x1, y1, w, h))
-            {
-                dst0 += src[y1 * w + x1] * a1 * b1;
-            }
-
-            dst[dy * outw + dx] = dst0;
-        }
-    }
+    return in_bounds(x, y, w, h) ? data[iy * w + h] : 0.f;
 }
 
-static void GSample_nearest(const Mat& src, Mat& dst, const Mat& grid,
-                             int align_corner, int padding_mode)
+// Based on
+// https://en.wikipedia.org/wiki/Bicubic_interpolation#Bicubic_convolution_algorithm
+static float cubic_convolution1(float x, float A)
 {
-    int outw = dst.w;
-    int outh = dst.h;
-    int w = src.w;
-    int h = src.h;
+    return ((A + 2) * x - (A + 3)) * x * x + 1;
+}
 
-    const float* srcptr = src;
-    const float* dstptr = dst;
+static float cubic_convolution2(float x, float A)
+{
+    return ((A * x - 5 * A) * x + 8 * A) * x - 4 * A;
+}
 
-    for (int dy = 0; dy < outh; dy++)
-    {
-        const float* gridrowptr = grid.row(dy);
-        for (int dx = 0; dx < outw; dx++)
-        {
-            // get the coordinate
-            float x = gridrowptr[dx * 2];
-            float y = gridrowptr[dx * 2 + 1];
-            int x0 = get_coord(x, w, padding_mode, align_corner);
-            int y0 = get_coord(y, h, padding_mode, align_corner);
-            int x1 = x0 + 1;
-            int y1 = y1 + 1;
+static void get_cubic_upsample_coefficients(float coeffs[4], float t)
+{
+    float A = -0.75;
 
-            // compute the coeffs of every coord
-            int a1 = x0 - static_cast<int>(std::floor(x0));
-            int b1 = y0 - static_cast<int>(std::floor(y0));
-            int a0 = 1 - a1;
-            int b0 = 1 - b1;
+    float x1 = t;
+    coeffs[0] = cubic_convolution2(x1 + 1.0, A);
+    coeffs[1] = cubic_convolution1(x1, A);
 
-            // get the nearest point
-            int xn = a1 > 0.5 ? x1 : x0;
-            int yn = b1 > 0.5 ? y1 : y0;
+    // opposite coefficients
+    float x2 = 1.0 - t;
+    coeffs[2] = cubic_convolution1(x2, A);
+    coeffs[3] = cubic_convolution2(x2 + 1.0, A);
+}
 
-            dst[dy * outw + dx] = in_bounds(xn, yn, w, h) ? src[yn * w + xn] : 0.f;
-        }
-    }
+static float cubic_interp1d(float x0, float x1, float x2, float x3, float t)
+{
+    float coeffs[4];
+    get_cubic_upsample_coefficients(coeffs, t);
 
-
+    return x0 * coeffs[0] + x1 * coeffs[1] + x2 * coeffs[2] + x3 * coeffs[3];
 }
 
 int Grid_Sample::forward(const std::vector<Mat>& bottom_blobs, std::vector<Mat>& top_blobs, const Option& opt) const
@@ -280,8 +187,8 @@ int Grid_Sample::forward(const std::vector<Mat>& bottom_blobs, std::vector<Mat>&
     int dims = bottom_blob.dims;
     size_t elemsize = bottom_blob.elemsize;
 
-    int outw = grid.w;
-    int outh = grid.h;
+    int outw = grid.h;
+    int outh = grid.c;
 
     if (dims == 3)
     {
@@ -290,32 +197,161 @@ int Grid_Sample::forward(const std::vector<Mat>& bottom_blobs, std::vector<Mat>&
             return -100;
         if (resize_type == 1) // bilinear
         {
-            #pragma omp parallel for num_threads(opt.num_threads)
-            for (int q = 0; q < channels; q++)
+// GSample_bilinear(src, dst, grid, align_corner, padding_mode);
+#pragma omp parallel for num_threads(opt.num_threads) collapse(2)
+            for (int row = 0; row < outh; row++)
             {
-                const Mat src = bottom_blob.channel(q);
-                Mat dst = top_blob.channel(q);
+                for (int col = 0; col < outw; col++)
+                {
+                    const float* gridptr = grid.channel(row).row(col);
 
-                GSample_bilinear(src, dst, grid, align_corner, padding_mode);
+                    // get the coordinate of every output point
+                    float ix = gridptr[0];
+                    float iy = gridptr[1];
+
+                    ix = get_coord(ix, w, padding_mode, align_corner);
+                    iy = get_coord(iy, h, padding_mode, align_corner);
+
+                    int xnw = static_cast<int>(std::floor(ix));
+                    int xne = xnw + 1;
+                    int xsw = xnw;
+                    int xse = xne;
+
+                    int ynw = static_cast<int>(std::floor(iy));
+                    int yne = ynw;
+                    int ysw = ynw + 1;
+                    int yse = ysw;
+
+                    // get the coeff of every output point
+                    float fnw = (xse - ix) * (yse - iy);
+                    float fne = (ix - xsw) * (ysw - iy);
+                    float fsw = (xne - ix) * (iy - yne);
+                    float fse = (ix - xnw) * (iy - ynw);
+
+                    for (int q = 0; q < channels; q++)
+                    {
+                        const float* ptr = bottom_blob.channel(q);
+                        float* outptr = top_blob.channel(q);
+
+                        float ans = 0.f;
+
+                        if (in_bounds(xnw, ynw, w, h))
+                        {
+                            ans += ptr[ynw * w + xnw];
+                        }
+                        if (in_bounds(xne, yne, w, h))
+                        {
+                            ans += ptr[yne * w + xne];
+                        }
+                        if (in_bounds(xsw, ysw, w, h))
+                        {
+                            ans += ptr[ysw * w + xsw];
+                        }
+                        if (in_bounds(xse, yse, w, h))
+                        {
+                            ans += ptr[yse * w + xse];
+                        }
+
+                        outptr[row * outw + col] = ans;
+                    }
+                }
             }
         }
         else if (resize_type == 2) //nearest
         {
-            #pragma omp parallel for num_threads(opt.num_threads)
-            for(int q = 0; q < channels; q++)
+#pragma omp parallel for num_threads(opt.num_threads) collapse(2)
+            for (int row = 0; row < outh; row++)
             {
-                const Mat src = bottom_blob.channel(q);
-                Mat dst = top_blob.channel(q);
+                for (int col = 0; col < outw; col++)
+                {
+                    const float* gridptr = grid.channel(row).row(col);
 
-                GSample_nearest(src, dst, grid, align_corner, padding_mode);
+                    // get the coordinate of every output point
+                    float ix = gridptr[0];
+                    float iy = gridptr[1];
+
+                    ix = get_coord(ix, w, padding_mode, align_corner);
+                    iy = get_coord(iy, h, padding_mode, align_corner);
+
+                    int x = static_cast<int>(std::round(ix));
+                    int y = static_cast<int>(std::round(iy));
+
+                    for (int q = 0; q < channels; q++)
+                    {
+                        const float* ptr = bottom_blob.channel(q);
+                        float* outptr = top_blob.channel(q);
+
+                        float ans = 0.f;
+
+                        if (in_bounds(x, y, w, h))
+                        {
+                            ans += ptr[y * h + w];
+                        }
+
+                        outptr[row * outw + col] = ans;
+                    }
+                }
             }
         }
-        else if(resize_type == 3) // bicubic
+        else if (resize_type == 3) // bicubic
         {
-            
+#pragma omp parallel for num_threads(opt.num_threads) collapse(2)
+            for (int row = 0; row < outh; row++)
+            {
+                for (int col = 0; col < outw; col++)
+                {
+                    const float* gridptr = grid.channel(row).row(col);
 
+                    // get the coordinate of every output point
+                    float ix = gridptr[0];
+                    float iy = gridptr[1];
+
+                    ix = grid_sample_unormalize(ix, w, align_corner);
+                    iy = grid_sample_unormalize(iy, h, align_corner);
+
+                    float xnw = std::floor(ix);
+                    float ynw = std::floor(iy);
+
+                    const float tx = ix - xnw;
+                    const float ty = iy - ynw;
+
+                    for (int q = 0; q < channels; q++)
+                    {
+                        const float* ptr = bottom_blob.channel(q);
+                        float* outptr = top_blob.channel(q);
+
+                        float coefficients[4];
+
+                        // Interpolate 4 values in the x directon
+                        for (int i = 0; i < 4; i++)
+                        {
+                            coefficients[i] = cubic_interp1d(
+                                get_value_bounded(ptr, xnw - 1, ynw - 1 + i, w, h, padding_mode, align_corner),
+                                get_value_bounded(ptr, xnw + 0, ynw - 1 + i, w, h, padding_mode, align_corner),
+                                get_value_bounded(ptr, xnw + 1, ynw - 1 + i, w, h, padding_mode, align_corner),
+                                get_value_bounded(ptr, xnw + 2, ynw - 1 + i, w, h, padding_mode, align_corner),
+                                tx);
+                        }
+
+                        // Interpolate in the y direction
+                        outptr[row * outw + col] = cubic_interp1d(
+                            coefficients[0],
+                            coefficients[1],
+                            coefficients[2],
+                            coefficients[3],
+                            ty);
+                    }
+                }
+            }
         }
     }
+
+    if(dims == 4)
+    {
+
+    }
+
+
 
     return 0;
 }
