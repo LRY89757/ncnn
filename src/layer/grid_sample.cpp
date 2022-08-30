@@ -348,14 +348,11 @@ int Grid_Sample::forward(const std::vector<Mat>& bottom_blobs, std::vector<Mat>&
 
     if (dims == 4)
     {
-        if(resize_type == 1)  // bilinear, actually be trilinear
+        if (resize_type == 1) // bilinear, actually be trilinear
         {
-
-
         }
-        else if(resize_type == 2) // nearest
+        else if (resize_type == 2) // nearest
         {
-
         }
     }
 
