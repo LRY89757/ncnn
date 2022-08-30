@@ -17,4 +17,52 @@
 
 static int test_grid_sample(const ncnn::Mat& a, int resize_type, int padding_mode, int align_corner)
 {
+    ncnn::ParamDict pd;
+    pd.set(0, resize_type);
+    pd.set(1, padding_mode);
+    pd.set(2, align_corner);
+
+    std::vector<ncnn::Mat> weights(0);
+
+    int ret = test_layer<ncnn::Grid_Sample>("Grid_Sample", pd, weights, a);
+    if(ret != 0)
+    {
+        fprintf(stderr, "test_grid_sample failed a.dims=%d a=(%d %d %d) resize_type=%d padding_mode=%d align_corner=%d", a.dims, a.w, a.h, a.c, resize_type, padding_mode, align_corner);
+    }
+
+    return ret;
+}
+
+static int test_grid_sample_0()
+{
+    ncnn::Mat a = RandomMat(15, 16, 17);
+
+    return 0
+           || test_grid_sample(a, 1, 1, 0)
+           || test_grid_sample(a, 1, 1, 1)
+           || test_grid_sample(a, 1, 2, 0)
+           || test_grid_sample(a, 1, 2, 1)
+           || test_grid_sample(a, 1, 3, 0)
+           || test_grid_sample(a, 1, 3, 1)
+           || test_grid_sample(a, 2, 1, 0)
+           || test_grid_sample(a, 2, 1, 1)
+           || test_grid_sample(a, 2, 2, 0)
+           || test_grid_sample(a, 2, 2, 1)
+           || test_grid_sample(a, 2, 3, 0)
+           || test_grid_sample(a, 2, 3, 1)
+           || test_grid_sample(a, 3, 1, 0)
+           || test_grid_sample(a, 3, 1, 1)
+           || test_grid_sample(a, 3, 2, 0)
+           || test_grid_sample(a, 3, 2, 1)
+           || test_grid_sample(a, 3, 3, 0)
+           || test_grid_sample(a, 3, 3, 1);
+}
+
+
+int main()
+{
+    SRAND(7767517);
+
+    return 0
+           || test_grid_sample_0();
 }
