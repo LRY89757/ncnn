@@ -18,7 +18,7 @@ namespace ncnn {
 
 Grid_Sample::Grid_Sample()
 {
-    one_blob_only = true;
+    one_blob_only = false;
     support_inplace = false;
 }
 
@@ -134,7 +134,7 @@ static float get_value_bounded(const float* data, float x, float y, int w, int h
     x = compute_coord(x, w, padding_mode, align_corner);
     y = compute_coord(y, w, padding_mode, align_corner);
 
-    int ix = static_cast<int>(x);
+    // int ix = static_cast<int>(x);
     int iy = static_cast<int>(y);
 
     return in_bounds(x, y, w, h) ? data[iy * w + h] : 0.f;
@@ -237,19 +237,19 @@ int Grid_Sample::forward(const std::vector<Mat>& bottom_blobs, std::vector<Mat>&
 
                         if (in_bounds(xnw, ynw, w, h))
                         {
-                            ans += ptr[ynw * w + xnw];
+                            ans += ptr[ynw * w + xnw] * fnw;
                         }
                         if (in_bounds(xne, yne, w, h))
                         {
-                            ans += ptr[yne * w + xne];
+                            ans += ptr[yne * w + xne] * fne;
                         }
                         if (in_bounds(xsw, ysw, w, h))
                         {
-                            ans += ptr[ysw * w + xsw];
+                            ans += ptr[ysw * w + xsw] * fsw;
                         }
                         if (in_bounds(xse, yse, w, h))
                         {
-                            ans += ptr[yse * w + xse];
+                            ans += ptr[yse * w + xse] * fse;
                         }
 
                         outptr[row * outw + col] = ans;
