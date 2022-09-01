@@ -29,7 +29,7 @@ static int test_grid_sample(const ncnn::Mat& a, int resize_type, int padding_mod
     std::vector<ncnn::Mat> weights(0);
 
     int ret = test_layer<ncnn::Grid_Sample>("Grid_Sample", pd, weights, as);
-    if(ret != 0)
+    if (ret != 0)
     {
         fprintf(stderr, "test_grid_sample failed a.dims=%d a=(%d %d %d) resize_type=%d padding_mode=%d align_corner=%d", a.dims, a.w, a.h, a.c, resize_type, padding_mode, align_corner);
     }
@@ -63,7 +63,6 @@ static int test_grid_sample_0()
            || test_grid_sample(a, 3, 3, 0)
            || test_grid_sample(a, 3, 3, 1);
 }
-
 
 int main()
 {
