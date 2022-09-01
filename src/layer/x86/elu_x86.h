@@ -17,7 +17,7 @@
 
 #include "elu.h"
 
-namespace ncnn {
+    namespace ncnn {
 
 class ELU_x86 : virtual public ELU
 {
