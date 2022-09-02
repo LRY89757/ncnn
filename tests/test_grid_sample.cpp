@@ -39,7 +39,9 @@ static int test_grid_sample(const ncnn::Mat& a, int resize_type, int padding_mod
 
 static int test_grid_sample_0()
 {
-    ncnn::Mat a = RandomMat(15, 16, 17);
+    // ncnn::Mat a = RandomMat(15, 16, 17);
+    ncnn::Mat a = RandomMat(3, 3, 1);
+
     // ncnn::Mat c = RandomMat(15, 16, 2);
     // std::vector<ncnn::Mat> a = {b, c};
 
