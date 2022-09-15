@@ -1,0 +1,5 @@
+*.pt
+*.param
+*.sh
+*.bin
+pnnx

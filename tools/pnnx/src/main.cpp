@@ -368,6 +368,8 @@ int main(int argc, char** argv)
     pnnx::Graph pnnx_graph;
     pnnx::pass_level1(mod, g, module_operators, pnnx_graph);
 
+    pnnx_graph.save("debug0.param", "debug0.bin");
+
     //     g->dump();
 
     fprintf(stderr, "############# pass_level2\n");
