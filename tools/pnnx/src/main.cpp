@@ -360,6 +360,7 @@ int main(int argc, char** argv)
 
     std::map<std::string, pnnx::Attribute> foldable_constants;
     pnnx::pass_level0(mod, g, input_tensors, input_tensors2, module_operators, ptpath, foldable_constants);
+    // 看起来level0仅仅找出了可以折叠的常量，但是没有进行任何优化
 
     //     g->dump();
 
