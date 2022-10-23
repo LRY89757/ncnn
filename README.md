@@ -40,7 +40,7 @@ ncnn 目前已在腾讯多款应用中使用，如：QQ，Qzone，微信，天�
 
 ## Current building status matrix
 
-| System            | CPU (32bit]                                                         | CPU (64bit)                                                                     | GPU (32bit)                                                     | GPU (64bit)                                                         |
+| System            | CPU (32bit)                                                         | CPU (64bit)                                                                     | GPU (32bit)                                                     | GPU (64bit)                                                         |
 | :---------------- | :------------------------------------------------------------------ | :------------------------------------------------------------------------------ | :-------------------------------------------------------------- | :------------------------------------------------------------------ |
 | Linux (GCC)       | [![Build Status][pass-linux-x86-cpu-gcc]][ci-linux-x86-cpu-gcc]     | [![Build Status][pass-linux-x64-cpu-gcc]][ci-linux-x64-cpu-gcc]                 | —                                                               | [![Build Status][pass-linux-x64-gpu-gcc]][ci-linux-x64-gpu-gcc]     |
 | Linux (Clang)     | [![Build Status][pass-linux-x86-cpu-clang]][ci-linux-x86-cpu-clang] | [![Build Status][pass-linux-x64-cpu-clang]][ci-linux-x64-cpu-clang]             | —                                                               | [![Build Status][pass-linux-x64-gpu-clang]][ci-linux-x64-gpu-clang] |
@@ -308,9 +308,8 @@ ncnn 目前已在腾讯多款应用中使用，如：QQ，Qzone，微信，天�
 - <https://github.com/xiang-wuu/ncnn-android-yolov7>
 - <https://github.com/nihui/ncnn-android-scrfd> 🤩
 
-<img src="https://github.com/nihui/ncnn-assets/raw/master/20181217/ncnn-2.jpg" width="360" height="640"/><img src="https://github.com/nihui/ncnn-assets/raw/master/20181217/4.jpg" width="360" height="640"/>
-<img src="https://github.com/nihui/ncnn-assets/raw/master/20181217/ncnn-33.jpg" width="360" height="640"/><img src="https://github.com/nihui/ncnn-assets/raw/master/20181217/ncnn-m.png" width="360" height="640"/>
-<img src="https://github.com/nihui/ncnn-android-yolov5/raw/master/screenshot.jpg" width="360" height="800"/>功能概述<img src="https://github.com/nihui/ncnn-android-scrfd/raw/master/screenshot.jpg" width="360" height="800"/>
+<img src="https://github.com/nihui/ncnn-assets/raw/master/20181217/ncnn-2.jpg" height ="270"/><img src="https://github.com/nihui/ncnn-assets/raw/master/20181217/4.jpg" height ="270"/><img src="https://github.com/nihui/ncnn-assets/raw/master/20181217/ncnn-33.jpg" height ="270"/><img src="https://github.com/nihui/ncnn-assets/raw/master/20181217/ncnn-m.png" height ="270"/><img src="https://github.com/nihui/ncnn-android-yolov5/raw/master/screenshot.jpg" height ="270"/><img src="https://github.com/nihui/ncnn-android-scrfd/raw/master/screenshot.jpg" height ="270"/><br>
+
 
 ---
 
