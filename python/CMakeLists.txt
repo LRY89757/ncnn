@@ -10,6 +10,9 @@ set( CMAKE_CXX_STANDARD_REQUIRED ON )
 
 add_subdirectory(pybind11)
 
+# set(ncnn_DIR /home/lry/projects/ncnn/build/install/lib/cmake/ncnn)
+# find_package(ncnn REQUIRED)
+
 if("${CMAKE_LIBRARY_OUTPUT_DIRECTORY}" STREQUAL "")
     if(MSVC OR CMAKE_GENERATOR STREQUAL "Xcode")
         set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_BINARY_DIR}/ncnn/)

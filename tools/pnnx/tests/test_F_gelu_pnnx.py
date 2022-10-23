@@ -28,10 +28,10 @@ class Model(nn.Module):
         return torch.from_numpy(m)
 
     def forward(self, v_0, v_1, v_2, v_3):
-        v_4 = F.gelu(input=v_3, approximate='none')
-        v_5 = F.gelu(input=v_2, approximate='none')
-        v_6 = F.gelu(input=v_1, approximate='none')
-        v_7 = F.gelu(input=v_0, approximate='none')
+        v_4 = F.gelu(input=v_3)
+        v_5 = F.gelu(input=v_2)
+        v_6 = F.gelu(input=v_1)
+        v_7 = F.gelu(input=v_0)
         v_8 = (v_7, v_6, v_5, v_4, )
         return v_8
 

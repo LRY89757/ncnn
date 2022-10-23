@@ -55,6 +55,7 @@ def test():
 
 if __name__ == "__main__":
     if test():
+        print("success!")
         exit(0)
     else:
         exit(1)

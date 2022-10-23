@@ -2283,6 +2283,8 @@ int Graph::ncnn(const std::string& parampath, const std::string& binpath, const 
 
             if (!string_is_positive_integer(it.first))
             {
+                fprintf(stderr, "%s\n", it.first.c_str());
+                fprintf(stderr, "oh! no!!!!!\n"); // debug for pnnx gridsample
                 fprintf(stderr, "ignore %s %s param %s=", op->type.c_str(), op->name.c_str(), it.first.c_str());
 
                 if (param.type == 0)

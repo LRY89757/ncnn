@@ -369,34 +369,44 @@ int main(int argc, char** argv)
     pnnx::Graph pnnx_graph;
     pnnx::pass_level1(mod, g, module_operators, pnnx_graph);
 
-    pnnx_graph.save("debug0.param", "debug0.bin");
+    pnnx_graph.save("passlevel1.param", "passlevel1.bin");
 
+    fprintf(stderr, "in pass_level1 ......\n");
     //     g->dump();
 
     fprintf(stderr, "############# pass_level2\n");
 
     pnnx::pass_level2(pnnx_graph);
 
-    pnnx_graph.save("debug.param", "debug.bin");
+    pnnx_graph.save("passlevel2.param", "passlevel2.bin");
 
-    if (optlevel >= 1)
+    // pnnx_graph.save("beforepasslevel3.param", "beforepasslevel3.bin");
+    // pnnx_graph.save("debug.param", "debug.bin");
+
+    if (optlevel >= 1) // optlevel default: 2
     {
         fprintf(stderr, "############# pass_level3\n");
 
         pnnx::pass_level3(pnnx_graph, foldable_constants);
 
+        pnnx_graph.save("passlevel3.param", "passlevel3.bin");
+
         fprintf(stderr, "############# pass_level4\n");
 
         pnnx::pass_level4(pnnx_graph);
+
+        pnnx_graph.save("passlevel4.param", "passlevel4.bin");
     }
 
-    pnnx_graph.save("debug2.param", "debug2.bin");
+    // pnnx_graph.save("debug2.param", "debug2.bin");
 
     if (optlevel >= 2)
     {
         fprintf(stderr, "############# pass_level5\n");
 
         pnnx::pass_level5(pnnx_graph, foldable_constants);
+
+        pnnx_graph.save("passlevel5.param", "passlevel5.bin");
     }
 
     pnnx_graph.save(pnnxparampath, pnnxbinpath);
@@ -410,6 +420,7 @@ int main(int argc, char** argv)
         pnnx::pass_ncnn(pnnx_graph);
 
         pnnx_graph.ncnn(ncnnparampath, ncnnbinpath, ncnnpypath);
+        pnnx_graph.save("passlevelncnn.param", "passlevelncnn.bin");
     }
 
     //     pnnx::Graph pnnx_graph2;

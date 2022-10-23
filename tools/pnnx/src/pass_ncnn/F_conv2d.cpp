@@ -44,6 +44,8 @@ pnnx.Output             output      1 0 out
 
     void write(Operator* op, const std::map<std::string, Parameter>& captured_params, const std::map<std::string, Attribute>& captured_attrs) const
     {
+        printf("hello!\n");
+        printf("hello!\n");
         Attribute weight;
         for (const auto& x : captured_attrs)
         {
@@ -108,6 +110,7 @@ pnnx.Output             output      1 0 out
 
     void write(Operator* op, const std::map<std::string, Parameter>& captured_params, const std::map<std::string, Attribute>& captured_attrs) const
     {
+        printf("hello!\n");
         Attribute weight;
         Attribute bias;
         for (const auto& x : captured_attrs)
@@ -175,6 +178,7 @@ pnnx.Output             output      1 0 out
 
     void write(Operator* op, const std::map<std::string, Parameter>& captured_params, const std::map<std::string, Attribute>& captured_attrs) const
     {
+        printf("hello!\n");
         Attribute weight;
         for (const auto& x : captured_attrs)
         {
@@ -240,6 +244,7 @@ pnnx.Output             output      1 0 out
 
     void write(Operator* op, const std::map<std::string, Parameter>& captured_params, const std::map<std::string, Attribute>& captured_attrs) const
     {
+        printf("hello!\n");
         Attribute weight;
         Attribute bias;
         for (const auto& x : captured_attrs)
@@ -308,6 +313,7 @@ pnnx.Output             output      1 0 out
 
     void write(Operator* op, const std::map<std::string, Parameter>& captured_params, const std::map<std::string, Attribute>& /*captured_attrs*/) const
     {
+        printf("hello!\n");
         std::vector<int> weight_shape = op->inputs[1]->shape;
         if (weight_shape.empty())
         {
@@ -368,6 +374,7 @@ pnnx.Output             output      1 0 out
 
     void write(Operator* op, const std::map<std::string, Parameter>& captured_params, const std::map<std::string, Attribute>& /*captured_attrs*/) const
     {
+        printf("hello!\n");
         std::vector<int> weight_shape = op->inputs[1]->shape;
         if (weight_shape.empty())
         {
@@ -427,6 +434,7 @@ pnnx.Output             output      1 0 out
 
     void write(Operator* op, const std::map<std::string, Parameter>& captured_params, const std::map<std::string, Attribute>& /*captured_attrs*/) const
     {
+        printf("hello!\n");
         std::vector<int> weight_shape = op->inputs[1]->shape;
         if (weight_shape.empty())
         {
@@ -488,6 +496,7 @@ pnnx.Output             output      1 0 out
 
     void write(Operator* op, const std::map<std::string, Parameter>& captured_params, const std::map<std::string, Attribute>& /*captured_attrs*/) const
     {
+        printf("hello!\n");
         std::vector<int> weight_shape = op->inputs[1]->shape;
         if (weight_shape.empty())
         {

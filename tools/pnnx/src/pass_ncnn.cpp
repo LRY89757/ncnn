@@ -100,6 +100,8 @@ void pass_ncnn(Graph& g)
 
     ncnn::convert_Tensor_select(g);
 
+    printf("1\n");
+
     int opindex = 0;
     for (auto x : g_global_pnnx_ncnn_graph_rewriter_passes)
     {
@@ -109,6 +111,7 @@ void pass_ncnn(Graph& g)
         }
     }
 
+    printf("2\n");
     ncnn::insert_split(g);
 
     ncnn::eliminate_noop(g);
@@ -123,18 +126,22 @@ void pass_ncnn(Graph& g)
     ncnn::fuse_innerproduct_activation(g);
     ncnn::eliminate_tail_reshape_permute(g);
 
+    printf("3\n");
     dead_code_elimination(g);
 
+    printf("4\n");
     canonicalize(g);
 
     ncnn::convert_custom_op(g);
 
     ncnn::convert_attribute(g);
 
+    printf("5\n");
     ncnn::convert_input(g);
 
     ncnn::eliminate_output(g);
 
+    printf("6\n");
     ncnn::convert_to_fp16_model(g);
 }
 
