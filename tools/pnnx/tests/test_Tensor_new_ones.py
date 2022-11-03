@@ -1,6 +1,6 @@
 # Tencent is pleased to support the open source community by making ncnn available.
 #
-# Copyright (C) 2021 THL A29 Limited, a Tencent company. All rights reserved.
+# Copyright (C) 2022 THL A29 Limited, a Tencent company. All rights reserved.
 #
 # Licensed under the BSD 3-Clause License (the "License"); you may not use this file except
 # in compliance with the License. You may obtain a copy of the License at
@@ -20,18 +20,13 @@ class Model(nn.Module):
     def __init__(self):
         super(Model, self).__init__()
 
-        self.w3 = nn.Parameter(torch.rand(16))
-        self.b3 = nn.Parameter(torch.rand(16))
-        self.w4 = nn.Parameter(torch.rand(12))
-        self.b4 = nn.Parameter(torch.rand(12))
-        self.w5 = nn.Parameter(torch.rand(32))
-        self.b5 = nn.Parameter(torch.rand(32))
-
-    def forward(self, x, y, z):
-        x = F.group_norm(x, 4, self.w3, self.b3)
-        y = F.group_norm(y, 6, self.w4, self.b4)
-        z = F.group_norm(z, 8, self.w5, self.b5, eps=1e-2)
-        return x, y, z
+    def forward(self, x):
+        out0 = x.new_ones((2,2))
+        out1 = x.new_ones(3)
+        out2 = x.new_ones((4,5,6,7,8))
+        out3 = x.new_ones((1,2,1))
+        out4 = x.new_ones((3,3,3,3))
+        return out0, out1, out2, out3, out4
 
 def test():
     net = Model()
@@ -39,25 +34,24 @@ def test():
 
     torch.manual_seed(0)
     x = torch.rand(1, 16)
-    y = torch.rand(1, 12, 16)
-    z = torch.rand(1, 32, 12, 16)
 
-    a = net(x, y, z)
+    a = net(x)
 
     # export torchscript
-    mod = torch.jit.trace(net, (x, y, z))
-    mod.save("test_F_group_norm.pt")
+    mod = torch.jit.trace(net, x)
+    mod.save("test_Tensor_new_ones.pt")
 
     # torchscript to pnnx
     import os
-    os.system("../../src/pnnx test_F_group_norm.pt inputshape=[1,16],[1,12,16],[1,32,12,16]")
+    os.system("../src/pnnx test_Tensor_new_ones.pt inputshape=[1,16]")
 
-    # ncnn inference
-    import test_F_group_norm_ncnn
-    b = test_F_group_norm_ncnn.test_inference()
+    # pnnx inference
+    import test_Tensor_new_ones_pnnx
+    b = test_Tensor_new_ones_pnnx.test_inference()
 
+    # test shape only for uninitialized data
     for a0, b0 in zip(a, b):
-        if not torch.allclose(a0, b0, 1e-4, 1e-4):
+        if not a0.shape == b0.shape:
             return False
     return True
 
